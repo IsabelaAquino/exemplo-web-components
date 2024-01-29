@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Components Example</title>
+</head>
+<body>
+
+<!-- Definindo o template do nosso componente -->
+<template id="hello-world-template">
+  <style>
+    /* Estilos do nosso componente */
+    :host {
+      display: block;
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      margin: 20px;
+      font-size: 18px;
+    }
+  </style>
+  <h1>Hello, <span id="name"></span>!</h1>
+</template>
+
+<!-- Criando o custom element -->
+<script>
+  // Define a classe para o custom element
+  class HelloWorld extends HTMLElement {
+    constructor() {
+      super();
+
+      // Cria um shadow DOM e anexa o conteúdo do template
+      this.attachShadow({ mode: 'open' });
+      this.shadowRoot.appendChild(
+        document.getElementById('hello-world-template').content.cloneNode(true)
+      );
+
+      // Adiciona um observador de atributos para reagir a mudanças no atributo 'name'
+      this.observeAttributes();
+    }
+
+    // Método chamado quando o elemento é conectado ao DOM
+    connectedCallback() {
+      this.updateContent();
+    }
+
+    // Método chamado quando um atributo monitorado é alterado
+    attributeChangedCallback(name, oldValue, newValue) {
+      if (name === 'name' && oldValue !== newValue) {
+        this.updateContent();
+      }
+    }
+
+    // Observa mudanças no atributo 'name'
+    observeAttributes() {
+      const config = { attributes: true, attributeOldValue: true };
+      const observer = new MutationObserver((mutationsList) => {
+        mutationsList.forEach((mutation) => {
+          this.attributeChangedCallback(
+            mutation.attributeName,
+            mutation.oldValue,
+            this.getAttribute(mutation.attributeName)
+          );
+        });
+      });
+
+      observer.observe(this, config);
+    }
+
+    // Atualiza o conteúdo do elemento com base no atributo 'name'
+    updateContent() {
+      const name = this.getAttribute('name') || 'Word';
+      this.shadowRoot.getElementById('name').textContent = name;
+    }
+  }
+
+  // Registra o custom element
+  customElements.define('hello-world', HelloWorld);
+</script>
+
+<!-- Utilizando o nosso custom element -->
+<hello-world name="Galera do meetup"></hello-world>
+<hello-world></hello-world>
+
+</body>
+</html>
